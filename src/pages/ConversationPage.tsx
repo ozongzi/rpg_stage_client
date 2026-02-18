@@ -19,7 +19,7 @@ export function ConversationPage() {
   const [error, setError] = useState<string | null>(null);
   const [messageError, setMessageError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
+
   // Track latest emotion and favorability from assistant messages
   const [latestEmotion, setLatestEmotion] = useState<string>('');
   const [latestFavorability, setLatestFavorability] = useState<number | undefined>(undefined);
@@ -150,10 +150,13 @@ export function ConversationPage() {
     display: 'grid',
     gridTemplateColumns: '250px 1fr',
     gap: '20px',
-    height: 'calc(100vh - 120px)',
+    // height: 'calc(100vh - 120px)',
   };
 
   const sidebarStyle: CSSProperties = {
+    position: 'sticky',
+    top: '20px',
+    alignSelf: 'start',
     backgroundColor: 'white',
     borderRadius: '8px',
     padding: '20px',
@@ -161,8 +164,10 @@ export function ConversationPage() {
     display: 'flex',
     flexDirection: 'column',
     gap: '16px',
+    maxHeight: 'calc(100vh - 40px)',
     overflow: 'hidden',
   };
+
 
   const agentInfoStyle: CSSProperties = {
     borderBottom: '1px solid #e5e7eb',
