@@ -2,18 +2,22 @@ import { useState, useEffect } from 'react';
 import type { CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
-import type { Agent, ApiError } from '../types';
+import type { Agent, AgentMetaListItem, ApiError } from '../types';
 import { Layout } from '../components/common/Layout';
 import { ErrorModal } from '../components/common/ErrorModal';
 
 export function AgentsPage() {
   const [agents, setAgents] = useState<Agent[]>([]);
+  const [agentMetas, setAgentMetas] = useState<AgentMetaListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedMetaId, setSelectedMetaId] = useState<string>('');
   const navigate = useNavigate();
 
   useEffect(() => {
     loadAgents();
+    loadAgentMetas();
   }, []);
 
   const loadAgents = async () => {
@@ -21,6 +25,36 @@ export function AgentsPage() {
       setLoading(true);
       const data = await apiService.listAgents();
       setAgents(data);
+    } catch (err) {
+      const apiError = err as ApiError;
+      setError(apiError.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadAgentMetas = async () => {
+    try {
+      const data = await apiService.listAgentMetas();
+      setAgentMetas(data);
+    } catch (err) {
+      const apiError = err as ApiError;
+      setError(apiError.message);
+    }
+  };
+
+  const handleCreateAgent = async () => {
+    if (!selectedMetaId) {
+      setError('请选择一个代理元数据');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await apiService.createAgent(selectedMetaId);
+      setShowCreateModal(false);
+      setSelectedMetaId('');
+      await loadAgents();
     } catch (err) {
       const apiError = err as ApiError;
       setError(apiError.message);
@@ -100,10 +134,105 @@ export function AgentsPage() {
     color: '#9ca3af',
   };
 
+  const createButtonStyle: CSSProperties = {
+    backgroundColor: '#3b82f6',
+    color: 'white',
+    padding: '12px 24px',
+    border: 'none',
+    borderRadius: '6px',
+    fontSize: '16px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    marginBottom: '20px',
+    transition: 'background-color 0.2s',
+  };
+
+  const modalOverlayStyle: CSSProperties = {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+  };
+
+  const modalStyle: CSSProperties = {
+    backgroundColor: 'white',
+    borderRadius: '8px',
+    padding: '24px',
+    maxWidth: '500px',
+    width: '90%',
+    maxHeight: '80vh',
+    overflow: 'auto',
+  };
+
+  const modalTitleStyle: CSSProperties = {
+    fontSize: '20px',
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: '20px',
+  };
+
+  const selectStyle: CSSProperties = {
+    width: '100%',
+    padding: '10px',
+    border: '1px solid #d1d5db',
+    borderRadius: '6px',
+    fontSize: '14px',
+    marginBottom: '20px',
+    outline: 'none',
+  };
+
+  const modalButtonsStyle: CSSProperties = {
+    display: 'flex',
+    gap: '12px',
+    justifyContent: 'flex-end',
+  };
+
+  const buttonPrimaryStyle: CSSProperties = {
+    backgroundColor: '#3b82f6',
+    color: 'white',
+    padding: '10px 20px',
+    border: 'none',
+    borderRadius: '6px',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+  };
+
+  const buttonSecondaryStyle: CSSProperties = {
+    backgroundColor: '#e5e7eb',
+    color: '#374151',
+    padding: '10px 20px',
+    border: 'none',
+    borderRadius: '6px',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+  };
+
   return (
     <Layout>
       <div style={cardStyle}>
         <h2 style={titleStyle}>我的代理</h2>
+        <button
+          style={createButtonStyle}
+          onClick={() => setShowCreateModal(true)}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = '#2563eb';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = '#3b82f6';
+          }}
+        >
+          ➕ 创建新代理
+        </button>
         {loading ? (
           <div style={loadingStyle}>加载中...</div>
         ) : agents.length === 0 ? (
@@ -138,6 +267,64 @@ export function AgentsPage() {
           </div>
         )}
       </div>
+
+      {showCreateModal && (
+        <div style={modalOverlayStyle} onClick={() => setShowCreateModal(false)}>
+          <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
+            <h3 style={modalTitleStyle}>创建新代理</h3>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#374151' }}>
+              选择代理元数据
+            </label>
+            <select
+              value={selectedMetaId}
+              onChange={(e) => setSelectedMetaId(e.target.value)}
+              style={selectStyle}
+            >
+              <option value="">-- 请选择 --</option>
+              {agentMetas.map((meta) => (
+                <option key={meta.id} value={meta.id}>
+                  {meta.name} - {meta.description}
+                </option>
+              ))}
+            </select>
+            <div style={modalButtonsStyle}>
+              <button
+                style={buttonSecondaryStyle}
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setSelectedMetaId('');
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#d1d5db';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#e5e7eb';
+                }}
+              >
+                取消
+              </button>
+              <button
+                style={buttonPrimaryStyle}
+                onClick={handleCreateAgent}
+                disabled={loading || !selectedMetaId}
+                onMouseEnter={(e) => {
+                  if (!loading && selectedMetaId) {
+                    e.currentTarget.style.backgroundColor = '#2563eb';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!loading && selectedMetaId) {
+                    e.currentTarget.style.backgroundColor = '#3b82f6';
+                  }
+                }}
+              >
+                {loading ? '创建中...' : '创建'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {error && <ErrorModal message={error} onClose={() => setError(null)} />}
     </Layout>
   );

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { AxiosError, AxiosInstance } from 'axios';
 import { API_BASE_URL, SESSION_TOKEN_KEY } from '../utils/constants';
-import type { User, Agent, AgentMeta, Conversation, Message } from '../types';
+import type { User, Agent, AgentMeta, AgentMetaListItem, Conversation, Message } from '../types';
 
 class ApiService {
   private api: AxiosInstance;
@@ -16,7 +16,7 @@ class ApiService {
 
     // Add interceptor to include auth token
     this.api.interceptors.request.use((config) => {
-      const token = sessionStorage.getItem(SESSION_TOKEN_KEY);
+      const token = localStorage.getItem(SESSION_TOKEN_KEY);
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -114,6 +114,15 @@ class ApiService {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
       });
+      return response.data;
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+
+  async listAgentMetas(): Promise<AgentMetaListItem[]> {
+    try {
+      const response = await this.api.get<AgentMetaListItem[]>('/agent_metas');
       return response.data;
     } catch (error) {
       this.handleError(error);

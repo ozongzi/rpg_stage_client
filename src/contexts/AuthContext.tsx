@@ -17,15 +17,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user has a session token
-    const token = sessionStorage.getItem(SESSION_TOKEN_KEY);
-    setIsAuthenticated(!!token);
-    setLoading(false);
+    // Check if user has a session token in localStorage
+    const validateToken = async () => {
+      const token = localStorage.getItem(SESSION_TOKEN_KEY);
+      if (token) {
+        try {
+          // Try to make an authenticated request to validate the token
+          await apiService.listAgents();
+          setIsAuthenticated(true);
+        } catch {
+          // Token is invalid, remove it
+          localStorage.removeItem(SESSION_TOKEN_KEY);
+          setIsAuthenticated(false);
+        }
+      } else {
+        setIsAuthenticated(false);
+      }
+      setLoading(false);
+    };
+
+    validateToken();
   }, []);
 
   const login = async (email: string, password: string) => {
     const token = await apiService.login(email, password);
-    sessionStorage.setItem(SESSION_TOKEN_KEY, token);
+    localStorage.setItem(SESSION_TOKEN_KEY, token);
     setIsAuthenticated(true);
   };
 
@@ -33,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await apiService.logout();
     } finally {
-      sessionStorage.removeItem(SESSION_TOKEN_KEY);
+      localStorage.removeItem(SESSION_TOKEN_KEY);
       setIsAuthenticated(false);
     }
   };
