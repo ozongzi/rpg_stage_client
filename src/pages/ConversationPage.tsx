@@ -19,6 +19,10 @@ export function ConversationPage() {
   const [error, setError] = useState<string | null>(null);
   const [messageError, setMessageError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Track latest emotion and favorability from assistant messages
+  const [latestEmotion, setLatestEmotion] = useState<string>('');
+  const [latestFavorability, setLatestFavorability] = useState<number | undefined>(undefined);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -54,6 +58,12 @@ export function ConversationPage() {
     try {
       const data = await apiService.listMessages(selectedConversation);
       setMessages(data);
+      // Update latest emotion and favorability from most recent assistant message
+      const lastAssistantMsg = [...data].reverse().find(msg => msg.role === 'assistant');
+      if (lastAssistantMsg) {
+        if (lastAssistantMsg.emotion) setLatestEmotion(lastAssistantMsg.emotion);
+        if (lastAssistantMsg.favorability !== undefined) setLatestFavorability(lastAssistantMsg.favorability);
+      }
     } catch (err) {
       const apiError = err as ApiError;
       setError(apiError.message);
@@ -115,6 +125,9 @@ export function ConversationPage() {
         name: response.name,
       };
       setMessages((prev) => [...prev, assistantMessage]);
+      // Update latest emotion and favorability
+      if (response.emotion) setLatestEmotion(response.emotion);
+      if (response.favorability !== undefined) setLatestFavorability(response.favorability);
     } catch (err) {
       const apiError = err as ApiError;
       // Show error in separate window for message sending errors
@@ -271,10 +284,10 @@ export function ConversationPage() {
             <div style={agentInfoStyle}>
               <div style={agentNameStyle}>{agent.name}</div>
               <div style={{ fontSize: '14px', color: '#6b7280' }}>
-                情绪: {agent.emotion}
+                情绪: {latestEmotion || agent.emotion}
               </div>
               <div style={{ fontSize: '14px', color: '#6b7280' }}>
-                好感度: {agent.favorability}
+                好感度: {latestFavorability !== undefined ? latestFavorability : agent.favorability}
               </div>
             </div>
           )}
@@ -313,12 +326,6 @@ export function ConversationPage() {
                     }
                   >
                     <div>{msg.content}</div>
-                    {msg.role === 'assistant' && (msg.emotion || msg.favorability !== undefined) && (
-                      <div style={{ marginTop: '8px', fontSize: '12px', color: '#6b7280', borderTop: '1px solid #e5e7eb', paddingTop: '8px' }}>
-                        {msg.emotion && <div>情绪: {msg.emotion}</div>}
-                        {msg.favorability !== undefined && <div>好感度: {msg.favorability}</div>}
-                      </div>
-                    )}
                   </div>
                 ))}
                 <div ref={messagesEndRef} />
