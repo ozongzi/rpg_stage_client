@@ -59,7 +59,13 @@ export function ConversationPage() {
       const data = await apiService.listMessages(selectedConversation);
       setMessages(data);
       // Update latest emotion and favorability from most recent assistant message
-      const lastAssistantMsg = [...data].reverse().find(msg => msg.role === 'assistant');
+      let lastAssistantMsg: Message | undefined;
+      for (let i = data.length - 1; i >= 0; i--) {
+        if (data[i].role === 'assistant') {
+          lastAssistantMsg = data[i];
+          break;
+        }
+      }
       if (lastAssistantMsg) {
         if (lastAssistantMsg.emotion) setLatestEmotion(lastAssistantMsg.emotion);
         if (lastAssistantMsg.favorability !== undefined) setLatestFavorability(lastAssistantMsg.favorability);
