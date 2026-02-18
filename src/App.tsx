@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoginPage } from './pages/LoginPage';
 import { AgentsPage } from './pages/AgentsPage';
 import { ConversationPage } from './pages/ConversationPage';
+import { AdminPage } from './pages/AdminPage';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loading } = useAuth();
@@ -44,6 +45,14 @@ function App() {
             element={
               <PrivateRoute>
                 <ConversationPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <PrivateRoute>
+                <AdminPage />
               </PrivateRoute>
             }
           />

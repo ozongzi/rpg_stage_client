@@ -20,6 +20,12 @@ export interface AgentMeta {
   model: string;
 }
 
+export interface AgentMetaListItem {
+  id: string;
+  name: string;
+  description: string;
+}
+
 export interface Conversation {
   id: string;
   title: string | null;
