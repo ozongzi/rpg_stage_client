@@ -29,6 +29,9 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
+  emotion?: string;
+  favorability?: number;
+  name?: string;
 }
 
 export interface ApiError {
