@@ -161,6 +161,7 @@ export function ConversationPage() {
     display: 'flex',
     flexDirection: 'column',
     gap: '16px',
+    overflow: 'hidden',
   };
 
   const agentInfoStyle: CSSProperties = {
@@ -279,6 +280,14 @@ export function ConversationPage() {
     marginBottom: '16px',
   };
 
+  const conversationListContainerStyle: CSSProperties = {
+    flex: 1,
+    overflowY: 'auto',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  };
+
   return (
     <Layout>
       <div style={containerStyle}>
@@ -303,19 +312,21 @@ export function ConversationPage() {
           <div style={{ fontSize: '14px', fontWeight: '600', color: '#6b7280' }}>
             对话列表
           </div>
-          {conversations.map((conv) => (
-            <div
-              key={conv.id}
-              style={
-                selectedConversation === conv.id
-                  ? selectedConversationStyle
-                  : conversationItemStyle
-              }
-              onClick={() => setSelectedConversation(conv.id)}
-            >
-              {conv.title || '新对话'}
-            </div>
-          ))}
+          <div style={conversationListContainerStyle}>
+            {conversations.map((conv) => (
+              <div
+                key={conv.id}
+                style={
+                  selectedConversation === conv.id
+                    ? selectedConversationStyle
+                    : conversationItemStyle
+                }
+                onClick={() => setSelectedConversation(conv.id)}
+              >
+                {conv.title || '新对话'}
+              </div>
+            ))}
+          </div>
         </div>
 
         <div style={chatContainerStyle}>
