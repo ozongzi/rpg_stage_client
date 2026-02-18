@@ -108,8 +108,11 @@ export function ConversationPage() {
       const response = await apiService.sendMessage(selectedConversation, userMessage);
       const assistantMessage: Message = {
         role: 'assistant',
-        content: response.response,
+        content: response.content,
         timestamp: new Date().toISOString(),
+        emotion: response.emotion,
+        favorability: response.favorability,
+        name: response.name,
       };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (err) {
@@ -309,7 +312,13 @@ export function ConversationPage() {
                         : assistantMessageStyle
                     }
                   >
-                    {msg.content}
+                    <div>{msg.content}</div>
+                    {msg.role === 'assistant' && (msg.emotion || msg.favorability !== undefined) && (
+                      <div style={{ marginTop: '8px', fontSize: '12px', color: '#6b7280', borderTop: '1px solid #e5e7eb', paddingTop: '8px' }}>
+                        {msg.emotion && <div>情绪: {msg.emotion}</div>}
+                        {msg.favorability !== undefined && <div>好感度: {msg.favorability}</div>}
+                      </div>
+                    )}
                   </div>
                 ))}
                 <div ref={messagesEndRef} />

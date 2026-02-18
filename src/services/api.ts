@@ -175,9 +175,9 @@ class ApiService {
   }
 
   // Messages
-  async sendMessage(conversationId: string, content: string): Promise<{ response: string }> {
+  async sendMessage(conversationId: string, content: string): Promise<{ content: string; emotion?: string; favorability?: number; name?: string }> {
     try {
-      const response = await this.api.post<{ response: string }>(`/conversations/${conversationId}/messages`, {
+      const response = await this.api.post<{ content: string; emotion?: string; favorability?: number; name?: string }>(`/conversations/${conversationId}/messages`, {
         content,
       });
       return response.data;
