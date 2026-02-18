@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { FormEvent, CSSProperties } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
@@ -20,40 +20,25 @@ export function ConversationPage() {
   const [messageError, setMessageError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (agentId) {
-      loadAgent();
-      loadConversations();
-    }
-  }, [agentId]);
-
-  useEffect(() => {
-    if (selectedConversation) {
-      loadMessages();
-    }
-  }, [selectedConversation]);
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const loadAgent = async () => {
+  const loadAgent = useCallback(async () => {
+    if (!agentId) return;
     try {
-      const data = await apiService.getAgent(agentId!);
+      const data = await apiService.getAgent(agentId);
       setAgent(data);
     } catch (err) {
       const apiError = err as ApiError;
       setError(apiError.message);
     }
-  };
+  }, [agentId]);
 
-  const loadConversations = async () => {
+  const loadConversations = useCallback(async () => {
+    if (!agentId) return;
     try {
-      const data = await apiService.listConversations(agentId!);
+      const data = await apiService.listConversations(agentId);
       setConversations(data);
       if (data.length > 0 && !selectedConversation) {
         setSelectedConversation(data[0].id);
@@ -62,9 +47,9 @@ export function ConversationPage() {
       const apiError = err as ApiError;
       setError(apiError.message);
     }
-  };
+  }, [agentId, selectedConversation]);
 
-  const loadMessages = async () => {
+  const loadMessages = useCallback(async () => {
     if (!selectedConversation) return;
     try {
       const data = await apiService.listMessages(selectedConversation);
@@ -73,7 +58,24 @@ export function ConversationPage() {
       const apiError = err as ApiError;
       setError(apiError.message);
     }
-  };
+  }, [selectedConversation]);
+
+  useEffect(() => {
+    if (agentId) {
+      loadAgent();
+      loadConversations();
+    }
+  }, [agentId, loadAgent, loadConversations]);
+
+  useEffect(() => {
+    if (selectedConversation) {
+      loadMessages();
+    }
+  }, [selectedConversation, loadMessages]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const createNewConversation = async () => {
     try {
