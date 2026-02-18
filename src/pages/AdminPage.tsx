@@ -224,7 +224,7 @@ export function AdminPage() {
   return (
     <Layout>
       <div style={cardStyle}>
-        <h2 style={titleStyle}>管理员管理</h2>
+        <h2 style={titleStyle}>管理后台</h2>
 
         <div style={tabsStyle}>
           <div
@@ -246,6 +246,7 @@ export function AdminPage() {
             {successMessage}
             <button
               onClick={() => setSuccessMessage(null)}
+              aria-label="关闭消息"
               style={{
                 float: 'right',
                 background: 'none',

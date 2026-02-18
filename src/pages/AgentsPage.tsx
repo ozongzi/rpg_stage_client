@@ -44,11 +44,6 @@ export function AgentsPage() {
   };
 
   const handleCreateAgent = async () => {
-    if (!selectedMetaId) {
-      setError('请选择一个代理元数据');
-      return;
-    }
-
     try {
       setLoading(true);
       await apiService.createAgent(selectedMetaId);

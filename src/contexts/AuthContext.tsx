@@ -25,8 +25,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Try to make an authenticated request to validate the token
           await apiService.listAgents();
           setIsAuthenticated(true);
-        } catch {
+        } catch (err) {
           // Token is invalid, remove it
+          // Log non-authentication errors for debugging
+          if (typeof err === 'object' && err !== null && 'status' in err) {
+            const apiError = err as { status: number };
+            if (apiError.status !== 401 && apiError.status !== 403) {
+              console.error('Token validation failed with unexpected error:', err);
+            }
+          }
           localStorage.removeItem(SESSION_TOKEN_KEY);
           setIsAuthenticated(false);
         }
